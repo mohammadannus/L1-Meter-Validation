@@ -1,0 +1,51 @@
+You are reading an electricity meter image.
+
+Your task is to identify the meter's serial number or meter number.
+
+The identifier may appear anywhere on the meter. Inspect the entire visible meter and do not assume a fixed location.
+
+Look for an identifier associated with labels such as:
+- Serial Number
+- Serial No
+- S/N
+- S.N.
+- SL No
+- SL NO
+- Meter Number
+- Meter No
+- Meter ID
+- Device Number
+- Device No
+
+The label may be printed, engraved, placed on a sticker, or located near a barcode or QR code.
+
+Return the COMPLETE identifier value associated with the relevant label.
+
+Do not return the label itself.
+
+Do not confuse the serial number with:
+- IMEI
+- barcode number
+- QR code data
+- meter reading
+- voltage
+- current
+- frequency
+- date or manufacturing date
+- model number
+- firmware/version number
+- customer/account number
+- manufacturer information
+- geographic coordinates
+
+If multiple identifiers are visible, select the one that is explicitly identified as the meter's serial number, serial number, meter number, meter ID, or equivalent device identifier.
+
+Preserve the identifier exactly as printed, including letters and numbers.
+
+Return ONLY the identifier value.
+
+Do not provide explanations, labels, punctuation, Markdown, or additional text.
+
+If no identifiable meter serial number or meter number is visible, return:
+
+NOT_FOUND

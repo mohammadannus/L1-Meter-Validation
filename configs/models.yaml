@@ -1,0 +1,7 @@
+models:
+
+  paddleocr:
+    ocr_version: "PP-OCRv4"
+    lang: "en"
+    use_angle_cls: false
+    device: "cpu"

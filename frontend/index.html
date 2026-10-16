@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeterSerial & Invoice VLM — Intelligent OCR Platform</title>
+  <meta name="description" content="Multi-application OCR platform sharing a high-speed PaddleOCR engine for Electricity Meter identification, Invoice Application No. extraction, and general document reading." />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="layout">
+
+    <!-- ================================================================
+         SIDEBAR
+    ================================================================ -->
+    <aside class="sidebar">
+
+      <!-- Logo -->
+      <div class="logo">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+          <strong>OmniOCR</strong>
+          <span>VLM & Document AI</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs in Sidebar -->
+      <nav class="sidebar-nav" aria-label="Application Modules">
+        <p class="section-label">Modules</p>
+        <button class="nav-tab-btn active" id="side-tab-meter" data-tab="meter">
+          <span class="tab-btn-icon">⚡</span>
+          <div class="tab-btn-text">
+            <span class="tab-btn-title">Meter Serial</span>
+            <span class="tab-btn-desc">Serial, IMEI & Seals</span>
+          </div>
+        </button>
+        <button class="nav-tab-btn" id="side-tab-invoice" data-tab="invoice">
+          <span class="tab-btn-icon">📄</span>
+          <div class="tab-btn-text">
+            <span class="tab-btn-title">Invoice Reader</span>
+            <span class="tab-btn-desc">Application No & Acct</span>
+          </div>
+        </button>
+        <button class="nav-tab-btn" id="side-tab-ocr" data-tab="ocr">
+          <span class="tab-btn-icon">📝</span>
+          <div class="tab-btn-text">
+            <span class="tab-btn-title">General OCR</span>
+            <span class="tab-btn-desc">Raw Document Text</span>
+          </div>
+        </button>
+      </nav>
+
+      <!-- Model configuration -->
+      <div class="model-section">
+        <p class="section-label">Shared Engine</p>
+        <div class="engine-badge">
+          <span class="engine-indicator"></span>
+          <span class="engine-name" id="engine-status-text">PP-OCRv4 (Shared Singleton)</span>
+        </div>
+
+        <button class="btn-analyze" id="analyze-btn" disabled>
+          ⚡ Process Document
+        </button>
+      </div>
+
+      <!-- Live Concurrency & Queue Status -->
+      <div class="queue-status-box">
+        <p class="section-label">Concurrency Guard</p>
+        <div class="queue-card">
+          <div class="queue-row">
+            <span class="queue-label">Compute Device</span>
+            <span class="queue-val" id="queue-device">CPU</span>
+          </div>
+          <div class="queue-row">
+            <span class="queue-label">Active Slots</span>
+            <span class="queue-val green" id="queue-active">0 / 2</span>
+          </div>
+          <div class="queue-row">
+            <span class="queue-label">Queue Depth</span>
+            <span class="queue-val blue" id="queue-waiting">0 / 20</span>
+          </div>
+          <div class="queue-row">
+            <span class="queue-label">Total Processed</span>
+            <span class="queue-val" id="queue-processed">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session Stats -->
+      <div class="stats-grid">
+        <p class="section-label">Session Stats</p>
+        <div class="stat-card">
+          <div class="stat-card-label">Requests</div>
+          <div class="stat-card-value blue" id="stat-requests">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Successful</div>
+          <div class="stat-card-value green" id="stat-success">0</div>
+        </div>
+      </div>
+
+      <!-- API docs link -->
+      <a class="api-badge" href="/docs" target="_blank" rel="noopener">
+        📄 Interactive Docs &nbsp;·&nbsp; /docs
+      </a>
+
+    </aside>
+
+    <!-- ================================================================
+         MAIN CONTENT
+    ================================================================ -->
+    <main class="main">
+
+      <!-- Top Tab Switcher -->
+      <div class="top-tab-bar" role="tablist">
+        <button class="top-tab active" id="tab-btn-meter" data-tab="meter" role="tab" aria-selected="true">
+          <span class="top-tab-icon">⚡</span>
+          <span>Meter Extraction</span>
+          <span class="tab-chip">Serial & IMEI</span>
+        </button>
+        <button class="top-tab" id="tab-btn-invoice" data-tab="invoice" role="tab" aria-selected="false">
+          <span class="top-tab-icon">📄</span>
+          <span>Invoice Document</span>
+          <span class="tab-chip">Application No.</span>
+        </button>
+        <button class="top-tab" id="tab-btn-ocr" data-tab="ocr" role="tab" aria-selected="false">
+          <span class="top-tab-icon">📝</span>
+          <span>General OCR</span>
+          <span class="tab-chip">Raw Text</span>
+        </button>
+      </div>
+
+      <!-- Page dynamic header -->
+      <header class="page-header">
+        <h1 class="page-title" id="page-title">
+          Meter <span>Identifier Extraction</span>
+        </h1>
+        <p class="page-subtitle" id="page-subtitle">
+          Upload an electricity meter image to extract Serial Number, IMEI, LED power status, and seal security.
+        </p>
+      </header>
+
+      <!-- Upload card -->
+      <section class="upload-card">
+
+        <!-- Drop zone -->
+        <div id="upload-zone-wrap">
+          <div class="upload-zone" id="upload-zone">
+            <span class="upload-icon" id="upload-icon">📷</span>
+            <p class="upload-title" id="upload-title">Drop your meter image here</p>
+            <p class="upload-hint" id="upload-hint">Supports JPEG, PNG, WEBP, BMP, TIFF &nbsp;·&nbsp; Max 20 MB</p>
+            <label class="upload-btn" for="file-input">Browse files</label>
+            <input type="file" id="file-input" accept="image/*" style="display:none" />
+          </div>
+        </div>
+
+        <!-- Image preview -->
+        <div class="preview-wrap" id="preview-wrap">
+          <img class="preview-img" id="preview-img" alt="Document preview" />
+          <button class="preview-remove" id="preview-remove" title="Remove image">✕</button>
+        </div>
+
+        <!-- Loading overlay -->
+        <div class="loader-overlay" id="loader-overlay">
+          <div class="loader-spinner"></div>
+          <p class="loader-text" id="loader-title">Analysing document…</p>
+          <div class="loader-stages" id="loader-stages"></div>
+        </div>
+
+      </section>
+
+      <!-- Error banner -->
+      <div class="error-banner" id="error-banner" role="alert">
+        <span>⚠️</span>
+        <span id="error-msg"></span>
+      </div>
+
+      <!-- ================================================================
+           RESULTS SECTION
+      ================================================================ -->
+      <section class="results-section" id="results-section">
+
+        <div class="results-header">
+          <h2 class="results-title" id="results-title">
+            ✅ Extraction Results
+          </h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span class="results-badge" id="endpoint-badge">/api/v1/extract</span>
+            <span class="timing-badge" id="timing-badge">⏱ 0 ms</span>
+          </div>
+        </div>
+
+        <!-- METER RESULTS VIEW -->
+        <div id="view-meter-results" class="tab-results-view">
+          <div class="results-grid">
+
+            <!-- Serial Number -->
+            <div class="result-card serial">
+              <div class="result-card-header">
+                <span class="result-card-label">
+                  <span class="result-icon">🔢</span>
+                  Serial Number / SL No
+                </span>
+                <button class="copy-btn" id="copy-serial">⎘ Copy</button>
+              </div>
+              <div class="result-value" id="serial-value"></div>
+            </div>
+
+            <!-- IMEI -->
+            <div class="result-card imei">
+              <div class="result-card-header">
+                <span class="result-card-label">
+                  <span class="result-icon">📡</span>
+                  IMEI Number
+                </span>
+                <button class="copy-btn" id="copy-imei">⎘ Copy</button>
+              </div>
+              <div class="result-value" id="imei-value"></div>
+            </div>
+
+            <!-- Meter Power Status (Green Light) -->
+            <div class="result-card green-light">
+              <div class="result-card-header">
+                <span class="result-card-label">
+                  <span class="result-icon">💡</span>
+                  Power Status (Green LED)
+                </span>
+                <span class="green-pct-badge" id="green-pct-badge">—</span>
+              </div>
+              <div class="green-light-display" id="green-light-display">
+                <div class="led-indicator" id="led-indicator"></div>
+                <div class="green-light-status-text" id="green-light-status-text">—</div>
+              </div>
+            </div>
+
+            <!-- Meter Seal & Lock Status -->
+            <div class="result-card seal-status">
+              <div class="result-card-header">
+                <span class="result-card-label">
+                  <span class="result-icon">🔒</span>
+                  Meter Seal & Lock Status
+                </span>
+                <span class="seal-count-badge" id="seal-count-badge">—</span>
+              </div>
+              <div class="seal-display" id="seal-display">
+                <div class="seal-lock-icon" id="seal-lock-icon">🔒</div>
+                <div class="seal-info-wrap">
+                  <div class="seal-status-text" id="seal-status-text">—</div>
+                  <div class="seal-conf-detail" id="seal-conf-detail">—</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Region breakdown accordion -->
+          <div class="regions-section">
+            <div class="regions-header" id="regions-header" role="button" tabindex="0">
+              <span class="regions-header-label">
+                🔍 Region-by-Region Breakdown
+                <span class="results-badge" id="regions-count">0 regions</span>
+              </span>
+              <span class="regions-chevron" id="regions-chevron">▾</span>
+            </div>
+            <div class="regions-body" id="regions-body">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- INVOICE RESULTS VIEW -->
+        <div id="view-invoice-results" class="tab-results-view" style="display:none">
+          <div class="results-grid">
+
+            <!-- Application Number (Primary Hero Card) -->
+            <div class="result-card invoice-app">
+              <div class="result-card-header">
+                <span class="result-card-label">
+                  <span class="result-icon">📑</span>
+                  Application Number / Reg No
+                </span>
+                <button class="copy-btn" id="copy-invoice-app">⎘ Copy</button>
+              </div>
+              <div class="result-value hero-value" id="invoice-app-value"></div>
+            </div>
+
+            <!-- Account ID -->
+            <div class="result-card invoice-acc">
+              <div class="result-card-header">
+                <span class="result-card-label">
+                  <span class="result-icon">👤</span>
+                  Account ID
+                </span>
+                <button class="copy-btn" id="copy-invoice-acc">⎘ Copy</button>
+              </div>
+              <div class="result-value" id="invoice-acc-value"></div>
+            </div>
+
+            <!-- Reference Number -->
+            <div class="result-card invoice-ref">
+              <div class="result-card-header">
+                <span class="result-card-label">
+                  <span class="result-icon">🏛️</span>
+                  Reference / Procurement No
+                </span>
+                <button class="copy-btn" id="copy-invoice-ref">⎘ Copy</button>
+              </div>
+              <div class="result-value ref-value" id="invoice-ref-value"></div>
+            </div>
+
+          </div>
+
+          <!-- Document Full OCR Text Accordion -->
+          <div class="doc-text-card">
+            <div class="doc-text-header">
+              <span class="doc-text-label">
+                <span>📜</span> Document Raw Text Verification
+              </span>
+              <button class="copy-btn" id="copy-invoice-text">⎘ Copy Full Text</button>
+            </div>
+            <div class="doc-text-body">
+              <pre class="doc-text-pre" id="invoice-raw-text">No text extracted.</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- GENERAL OCR RESULTS VIEW -->
+        <div id="view-ocr-results" class="tab-results-view" style="display:none">
+          <div class="results-grid single-col">
+
+            <!-- OCR Text Summary -->
+            <div class="result-card ocr-summary">
+              <div class="result-card-header">
+                <span class="result-card-label">
+                  <span class="result-icon">📊</span>
+                  OCR Statistics
+                </span>
+                <span class="seal-count-badge" id="ocr-line-badge">0 lines</span>
+              </div>
+              <div class="ocr-stats-row">
+                <div class="ocr-stat-item">
+                  <span class="ocr-stat-title">Lines Recognized</span>
+                  <span class="ocr-stat-value" id="ocr-stat-lines">0</span>
+                </div>
+                <div class="ocr-stat-item">
+                  <span class="ocr-stat-title">Characters</span>
+                  <span class="ocr-stat-value" id="ocr-stat-chars">0</span>
+                </div>
+                <div class="ocr-stat-item">
+                  <span class="ocr-stat-title">Engine</span>
+                  <span class="ocr-stat-value">PP-OCRv4</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Raw text block -->
+          <div class="doc-text-card">
+            <div class="doc-text-header">
+              <span class="doc-text-label">
+                <span>📝</span> Extracted Text Output
+              </span>
+              <button class="copy-btn" id="copy-ocr-text">⎘ Copy All Text</button>
+            </div>
+            <div class="doc-text-body">
+              <pre class="doc-text-pre" id="ocr-raw-text">No text extracted.</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Universal Raw JSON Viewer -->
+        <div class="json-section">
+          <div class="json-header">
+            <span class="json-header-label">
+              <span class="result-icon">⚙️</span>
+              API Response JSON
+            </span>
+            <button class="copy-btn" id="copy-json">⎘ Copy JSON</button>
+          </div>
+          <div class="json-content">
+            <pre class="json-pre"><code id="json-code">// Raw JSON response payload will appear here...</code></pre>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
