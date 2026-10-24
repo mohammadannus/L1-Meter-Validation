@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _PROJECT_ROOT = Path(__file__).resolve().parent
-_DEFAULT_MODEL_PATH = _PROJECT_ROOT / "meter_img_detection.pt"
+_DEFAULT_MODEL_PATH = _PROJECT_ROOT / "L1v1-anas.pt"
 _DEFAULT_CONFIDENCE = 0.25
 _DEFAULT_PADDING_PCT = 0.02  # 2% padding margin around bounding box to protect edge characters
 

@@ -1,5 +1,4 @@
 models:
-
   paddleocr:
     ocr_version: "PP-OCRv4"
     lang: "en"
