@@ -2,7 +2,7 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "feature/devops-mlops" ]
   workflow_dispatch: # Allows you to manually trigger the build from GitHub UI
 
 jobs:
