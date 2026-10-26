@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [ "feature/devops-mlops" ]
-  workflow_dispatch: # Allows you to manually trigger the build from GitHub UI
+  workflow_dispatch: 
 
 jobs:
   build-and-push:
@@ -28,5 +28,15 @@ jobs:
       with:
         context: .
         push: true
-        # GitHub requires the image name to be lowercase
         tags: ghcr.io/mohammadannus/l1-meter-validation/meter-app:latest
+
+    # 🚀 THIS IS THE NEW AUTOMATED DEPLOYMENT STEP
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd ~
+          ./deploy.sh
