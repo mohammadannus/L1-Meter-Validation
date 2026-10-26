@@ -28,9 +28,9 @@ jobs:
       with:
         context: .
         push: true
+        no-cache: true # <--- FORCES A FRESH BUILD, BYPASSING OLD LAYERS
         tags: ghcr.io/mohammadannus/l1-meter-validation/meter-app:latest
 
-        # 🚀 AUTOMATED DEPLOYMENT STEP
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.0.3
       with:
